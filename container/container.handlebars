@@ -1,0 +1,14 @@
+<div>
+  {{> global-nav}}
+  <div class="page-content">
+	{{#if currentPage.showHomePage}}
+	  {{> ../home-page/home-page}}
+	{{/if}}
+	{{#if currentPage.showMenuMaker}}
+	  {{> ../menu-maker/menu-maker}}
+	{{/if}}
+	{{#if currentPage.showAccount}}
+	  {{> ../account/my-account}}
+	{{/if}}
+  </div>
+</div>

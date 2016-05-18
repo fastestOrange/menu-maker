@@ -1,0 +1,49 @@
+
+	<div class="section no-pad-bot" id="index-banner">
+	  <div class="mm-edit-wrapper">
+	    <div class="row">
+	     <div class="col s6">
+	      	 <div class="row">
+		        <div class="">
+		        <a onclick="setEventAction('setToEdit')" class="btn-large green">{{#if editing}}Done{{else}}Edit{{/if}}</a>
+			  	    <a onclick="setEventAction('addSectionInput')" class="btn-large red">+ Section</a>
+    	  	    <a onclick="setEventAction('addItemInput')" class="btn-large red">+ Item</a>
+		        </div>
+	      	 </div>
+	      	 <div class="row">
+               {{#each menuInputs}}
+	                <div class="{{type}}class valign-wrapper row col s12">
+	                    <div class="valign col s1">
+	                    	<span class="red-text" onclick="setEventAction('removeInput', '{{{name}}}')">X</span>
+	                    </div>
+	                    <div class="grey lighten-3 type-labels align-right col s3">
+			                <h5>{{type}}<h5>
+	                    </div>
+	                    <div class="col s8">
+	                        {{#if ../editing}}
+				                	  <input onchange="setEventAction('setInputText', '{{{name}}}')" name="{{name}}" style="margin-top: 15px" type="text" value="{{text}}"/>
+			                	  {{else}}
+					                	<p>{{text}}</p>
+			                	  {{/if}}
+	                    </div>
+	               </div>
+		       {{/each}}
+	      	 </div>
+	     </div>
+ 	     <div class="col s6">
+ 	      	 <div class="row">
+ 	      	    <div class="preview {{previewType}}">
+	                {{#each menuInputs}}
+	 	                <div>
+	 	                  <h3>
+	 	                  	{{text}}
+	 	                  </h3>
+
+	 	               </div>
+	 		       {{/each}}
+ 	      	    </div>
+ 	      	 </div>
+ 	     </div>
+	    </div>
+	  </div>
+	</div>
