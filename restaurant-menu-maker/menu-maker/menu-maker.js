@@ -2,7 +2,8 @@ var template = require('./menu-maker.handlebars');
 var dom = require('dominus');
 var morph = require('morphdom')
 var appState = require('../../app-state');
-var activator = require('../scripts/activator');
+var Activator = require('../scripts/activator');
+var activator = Activator();
 
 //load seed data into state
 require('./seedData').map(function(i){
@@ -14,16 +15,15 @@ appState.observe('menuInputs', function(args){
 });
 
 var MenuMaker = function(container, state){
-  	this.container = container;
-  	this.state = state;
-    this.render(this.state.getState());
-    this.pageActions = require('./menu-maker-actions');
-    window.setEventAction = activator.bind(this)
+  this.container = container;
+  this.state = state;
+  this.render(this.state.getState());
+   window.setEventAction = activator(this, require('./menu-maker-actions'))
 }
 
 MenuMaker.prototype.render = function(state){
 	var target = template(state);
-    morph(this.container[0], target);
+  morph(this.container[0], target);
 }
 
 new MenuMaker(dom('.menu-maker'), appState);
