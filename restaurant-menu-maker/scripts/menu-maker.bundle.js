@@ -45,17 +45,25 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	var template = __webpack_require__(1);
-	var inherits = __webpack_require__(21)
 	var dom = __webpack_require__(22);
 	var morph = __webpack_require__(40)
 	var appState = __webpack_require__(41);
-	var activator = __webpack_require__(43);
+	var activator = __webpack_require__(44);
+
+	//load seed data into state
+	__webpack_require__(55).map(function(i){
+		appState.setState('push', 'menuInputs', i)
+	});
+
+	appState.observe('menuInputs', function(args){
+	  // console.log('menumaker',args)
+	});
 
 	var MenuMaker = function(container, state){
 	  	this.container = container;
 	  	this.state = state;
-	    this.render(this.state.get());
-	    this.pageActions = __webpack_require__(44);
+	    this.render(this.state.getState());
+	    this.pageActions = __webpack_require__(45);
 	    window.setEventAction = activator.bind(this)
 	}
 
@@ -3031,56 +3039,653 @@
 /* 41 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var objectPath = __webpack_require__(55);
+	var objectPath = __webpack_require__(42);
+	var ee = __webpack_require__(43).EventEmitter; 
+	var inherits = __webpack_require__(21);
 
 	var state = objectPath({ 
 		menuInputs: [],
 		editing: false
 	});
 
-	[
-	  {
-	  	name: "section_1",
-	  	type: "section",
-	  	text: "Appetizers"
-	  },
-	  {
-	  	name: "item_1",
-	  	type: "item",
-	  	text: "Crostini"
-	  },
-	  {
-	  	name: "item_2",
-	  	type: "item",
-	  	text: "Cucumber Sandwiches"
-	  },
-	].map(function(i){
-	   state.push('menuInputs', i);
-	});
+	var State = function(initialState){
+	  this.state = initialState || {};
+	  this.on('state set', function(args){
+	     console.log('constructor', args)
+	  })
+	}
 
-	module.exports = state
+	inherits(State, ee);
+
+	State.prototype.getState = function(propertyPath){
+		return this.state.get(propertyPath);
+	}
+
+	State.prototype.setState = function(method, propertyPath, value){
+		this.state[method](propertyPath, value);
+		this.emit('state set', {method: method, propertyPath: propertyPath, value: value});
+	}
+
+	State.prototype.observe = function(propPath, cb){
+	  this.on('state set', function(argObj){
+	    if(argObj.propertyPath = propPath){
+	    	cb(argObj)
+	    }
+	  });
+	}
+
+	var appState = new State(state);
+
+	module.exports = appState
 
 /***/ },
-/* 42 */,
+/* 42 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function (root, factory){
+	  'use strict';
+
+	  /*istanbul ignore next:cant test*/
+	  if (typeof module === 'object' && typeof module.exports === 'object') {
+	    module.exports = factory();
+	  } else if (true) {
+	    // AMD. Register as an anonymous module.
+	    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+	  } else {
+	    // Browser globals
+	    root.objectPath = factory();
+	  }
+	})(this, function(){
+	  'use strict';
+
+	  var
+	    toStr = Object.prototype.toString,
+	    _hasOwnProperty = Object.prototype.hasOwnProperty;
+
+	  function isEmpty(value){
+	    if (!value) {
+	      return true;
+	    }
+	    if (isArray(value) && value.length === 0) {
+	        return true;
+	    } else if (!isString(value)) {
+	        for (var i in value) {
+	            if (_hasOwnProperty.call(value, i)) {
+	                return false;
+	            }
+	        }
+	        return true;
+	    }
+	    return false;
+	  }
+
+	  function toString(type){
+	    return toStr.call(type);
+	  }
+
+	  function isNumber(value){
+	    return typeof value === 'number' || toString(value) === "[object Number]";
+	  }
+
+	  function isString(obj){
+	    return typeof obj === 'string' || toString(obj) === "[object String]";
+	  }
+
+	  function isObject(obj){
+	    return typeof obj === 'object' && toString(obj) === "[object Object]";
+	  }
+
+	  function isArray(obj){
+	    return typeof obj === 'object' && typeof obj.length === 'number' && toString(obj) === '[object Array]';
+	  }
+
+	  function isBoolean(obj){
+	    return typeof obj === 'boolean' || toString(obj) === '[object Boolean]';
+	  }
+
+	  function getKey(key){
+	    var intKey = parseInt(key);
+	    if (intKey.toString() === key) {
+	      return intKey;
+	    }
+	    return key;
+	  }
+
+	  function set(obj, path, value, doNotReplace){
+	    if (isNumber(path)) {
+	      path = [path];
+	    }
+	    if (isEmpty(path)) {
+	      return obj;
+	    }
+	    if (isString(path)) {
+	      return set(obj, path.split('.').map(getKey), value, doNotReplace);
+	    }
+	    var currentPath = path[0];
+
+	    if (path.length === 1) {
+	      var oldVal = obj[currentPath];
+	      if (oldVal === void 0 || !doNotReplace) {
+	        obj[currentPath] = value;
+	      }
+	      return oldVal;
+	    }
+
+	    if (obj[currentPath] === void 0) {
+	      //check if we assume an array
+	      if(isNumber(path[1])) {
+	        obj[currentPath] = [];
+	      } else {
+	        obj[currentPath] = {};
+	      }
+	    }
+
+	    return set(obj[currentPath], path.slice(1), value, doNotReplace);
+	  }
+
+	  function del(obj, path) {
+	    if (isNumber(path)) {
+	      path = [path];
+	    }
+
+	    if (isEmpty(obj)) {
+	      return void 0;
+	    }
+
+	    if (isEmpty(path)) {
+	      return obj;
+	    }
+	    if(isString(path)) {
+	      return del(obj, path.split('.'));
+	    }
+
+	    var currentPath = getKey(path[0]);
+	    var oldVal = obj[currentPath];
+
+	    if(path.length === 1) {
+	      if (oldVal !== void 0) {
+	        if (isArray(obj)) {
+	          obj.splice(currentPath, 1);
+	        } else {
+	          delete obj[currentPath];
+	        }
+	      }
+	    } else {
+	      if (obj[currentPath] !== void 0) {
+	        return del(obj[currentPath], path.slice(1));
+	      }
+	    }
+
+	    return obj;
+	  }
+
+	  var objectPath = function(obj) {
+	    return Object.keys(objectPath).reduce(function(proxy, prop) {
+	      if (typeof objectPath[prop] === 'function') {
+	        proxy[prop] = objectPath[prop].bind(objectPath, obj);
+	      }
+
+	      return proxy;
+	    }, {});
+	  };
+
+	  objectPath.has = function (obj, path) {
+	    if (isEmpty(obj)) {
+	      return false;
+	    }
+
+	    if (isNumber(path)) {
+	      path = [path];
+	    } else if (isString(path)) {
+	      path = path.split('.');
+	    }
+
+	    if (isEmpty(path) || path.length === 0) {
+	      return false;
+	    }
+
+	    for (var i = 0; i < path.length; i++) {
+	      var j = path[i];
+	      if ((isObject(obj) || isArray(obj)) && _hasOwnProperty.call(obj, j)) {
+	        obj = obj[j];
+	      } else {
+	        return false;
+	      }
+	    }
+
+	    return true;
+	  };
+
+	  objectPath.ensureExists = function (obj, path, value){
+	    return set(obj, path, value, true);
+	  };
+
+	  objectPath.set = function (obj, path, value, doNotReplace){
+	    return set(obj, path, value, doNotReplace);
+	  };
+
+	  objectPath.insert = function (obj, path, value, at){
+	    var arr = objectPath.get(obj, path);
+	    at = ~~at;
+	    if (!isArray(arr)) {
+	      arr = [];
+	      objectPath.set(obj, path, arr);
+	    }
+	    arr.splice(at, 0, value);
+	  };
+
+	  objectPath.empty = function(obj, path) {
+	    if (isEmpty(path)) {
+	      return obj;
+	    }
+	    if (isEmpty(obj)) {
+	      return void 0;
+	    }
+
+	    var value, i;
+	    if (!(value = objectPath.get(obj, path))) {
+	      return obj;
+	    }
+
+	    if (isString(value)) {
+	      return objectPath.set(obj, path, '');
+	    } else if (isBoolean(value)) {
+	      return objectPath.set(obj, path, false);
+	    } else if (isNumber(value)) {
+	      return objectPath.set(obj, path, 0);
+	    } else if (isArray(value)) {
+	      value.length = 0;
+	    } else if (isObject(value)) {
+	      for (i in value) {
+	        if (_hasOwnProperty.call(value, i)) {
+	          delete value[i];
+	        }
+	      }
+	    } else {
+	      return objectPath.set(obj, path, null);
+	    }
+	  };
+
+	  objectPath.push = function (obj, path /*, values */){
+	    var arr = objectPath.get(obj, path);
+	    if (!isArray(arr)) {
+	      arr = [];
+	      objectPath.set(obj, path, arr);
+	    }
+
+	    arr.push.apply(arr, Array.prototype.slice.call(arguments, 2));
+	  };
+
+	  objectPath.coalesce = function (obj, paths, defaultValue) {
+	    var value;
+
+	    for (var i = 0, len = paths.length; i < len; i++) {
+	      if ((value = objectPath.get(obj, paths[i])) !== void 0) {
+	        return value;
+	      }
+	    }
+
+	    return defaultValue;
+	  };
+
+	  objectPath.get = function (obj, path, defaultValue){
+	    if (isNumber(path)) {
+	      path = [path];
+	    }
+	    if (isEmpty(path)) {
+	      return obj;
+	    }
+	    if (isEmpty(obj)) {
+	      return defaultValue;
+	    }
+	    if (isString(path)) {
+	      return objectPath.get(obj, path.split('.'), defaultValue);
+	    }
+
+	    var currentPath = getKey(path[0]);
+
+	    if (path.length === 1) {
+	      if (obj[currentPath] === void 0) {
+	        return defaultValue;
+	      }
+	      return obj[currentPath];
+	    }
+
+	    return objectPath.get(obj[currentPath], path.slice(1), defaultValue);
+	  };
+
+	  objectPath.del = function(obj, path) {
+	    return del(obj, path);
+	  };
+
+	  return objectPath;
+	});
+
+
+/***/ },
 /* 43 */
+/***/ function(module, exports) {
+
+	// Copyright Joyent, Inc. and other Node contributors.
+	//
+	// Permission is hereby granted, free of charge, to any person obtaining a
+	// copy of this software and associated documentation files (the
+	// "Software"), to deal in the Software without restriction, including
+	// without limitation the rights to use, copy, modify, merge, publish,
+	// distribute, sublicense, and/or sell copies of the Software, and to permit
+	// persons to whom the Software is furnished to do so, subject to the
+	// following conditions:
+	//
+	// The above copyright notice and this permission notice shall be included
+	// in all copies or substantial portions of the Software.
+	//
+	// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+	// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+	// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+	// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+	// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+	// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+	// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+	function EventEmitter() {
+	  this._events = this._events || {};
+	  this._maxListeners = this._maxListeners || undefined;
+	}
+	module.exports = EventEmitter;
+
+	// Backwards-compat with node 0.10.x
+	EventEmitter.EventEmitter = EventEmitter;
+
+	EventEmitter.prototype._events = undefined;
+	EventEmitter.prototype._maxListeners = undefined;
+
+	// By default EventEmitters will print a warning if more than 10 listeners are
+	// added to it. This is a useful default which helps finding memory leaks.
+	EventEmitter.defaultMaxListeners = 10;
+
+	// Obviously not all Emitters should be limited to 10. This function allows
+	// that to be increased. Set to zero for unlimited.
+	EventEmitter.prototype.setMaxListeners = function(n) {
+	  if (!isNumber(n) || n < 0 || isNaN(n))
+	    throw TypeError('n must be a positive number');
+	  this._maxListeners = n;
+	  return this;
+	};
+
+	EventEmitter.prototype.emit = function(type) {
+	  var er, handler, len, args, i, listeners;
+
+	  if (!this._events)
+	    this._events = {};
+
+	  // If there is no 'error' event listener then throw.
+	  if (type === 'error') {
+	    if (!this._events.error ||
+	        (isObject(this._events.error) && !this._events.error.length)) {
+	      er = arguments[1];
+	      if (er instanceof Error) {
+	        throw er; // Unhandled 'error' event
+	      }
+	      throw TypeError('Uncaught, unspecified "error" event.');
+	    }
+	  }
+
+	  handler = this._events[type];
+
+	  if (isUndefined(handler))
+	    return false;
+
+	  if (isFunction(handler)) {
+	    switch (arguments.length) {
+	      // fast cases
+	      case 1:
+	        handler.call(this);
+	        break;
+	      case 2:
+	        handler.call(this, arguments[1]);
+	        break;
+	      case 3:
+	        handler.call(this, arguments[1], arguments[2]);
+	        break;
+	      // slower
+	      default:
+	        args = Array.prototype.slice.call(arguments, 1);
+	        handler.apply(this, args);
+	    }
+	  } else if (isObject(handler)) {
+	    args = Array.prototype.slice.call(arguments, 1);
+	    listeners = handler.slice();
+	    len = listeners.length;
+	    for (i = 0; i < len; i++)
+	      listeners[i].apply(this, args);
+	  }
+
+	  return true;
+	};
+
+	EventEmitter.prototype.addListener = function(type, listener) {
+	  var m;
+
+	  if (!isFunction(listener))
+	    throw TypeError('listener must be a function');
+
+	  if (!this._events)
+	    this._events = {};
+
+	  // To avoid recursion in the case that type === "newListener"! Before
+	  // adding it to the listeners, first emit "newListener".
+	  if (this._events.newListener)
+	    this.emit('newListener', type,
+	              isFunction(listener.listener) ?
+	              listener.listener : listener);
+
+	  if (!this._events[type])
+	    // Optimize the case of one listener. Don't need the extra array object.
+	    this._events[type] = listener;
+	  else if (isObject(this._events[type]))
+	    // If we've already got an array, just append.
+	    this._events[type].push(listener);
+	  else
+	    // Adding the second element, need to change to array.
+	    this._events[type] = [this._events[type], listener];
+
+	  // Check for listener leak
+	  if (isObject(this._events[type]) && !this._events[type].warned) {
+	    if (!isUndefined(this._maxListeners)) {
+	      m = this._maxListeners;
+	    } else {
+	      m = EventEmitter.defaultMaxListeners;
+	    }
+
+	    if (m && m > 0 && this._events[type].length > m) {
+	      this._events[type].warned = true;
+	      console.error('(node) warning: possible EventEmitter memory ' +
+	                    'leak detected. %d listeners added. ' +
+	                    'Use emitter.setMaxListeners() to increase limit.',
+	                    this._events[type].length);
+	      if (typeof console.trace === 'function') {
+	        // not supported in IE 10
+	        console.trace();
+	      }
+	    }
+	  }
+
+	  return this;
+	};
+
+	EventEmitter.prototype.on = EventEmitter.prototype.addListener;
+
+	EventEmitter.prototype.once = function(type, listener) {
+	  if (!isFunction(listener))
+	    throw TypeError('listener must be a function');
+
+	  var fired = false;
+
+	  function g() {
+	    this.removeListener(type, g);
+
+	    if (!fired) {
+	      fired = true;
+	      listener.apply(this, arguments);
+	    }
+	  }
+
+	  g.listener = listener;
+	  this.on(type, g);
+
+	  return this;
+	};
+
+	// emits a 'removeListener' event iff the listener was removed
+	EventEmitter.prototype.removeListener = function(type, listener) {
+	  var list, position, length, i;
+
+	  if (!isFunction(listener))
+	    throw TypeError('listener must be a function');
+
+	  if (!this._events || !this._events[type])
+	    return this;
+
+	  list = this._events[type];
+	  length = list.length;
+	  position = -1;
+
+	  if (list === listener ||
+	      (isFunction(list.listener) && list.listener === listener)) {
+	    delete this._events[type];
+	    if (this._events.removeListener)
+	      this.emit('removeListener', type, listener);
+
+	  } else if (isObject(list)) {
+	    for (i = length; i-- > 0;) {
+	      if (list[i] === listener ||
+	          (list[i].listener && list[i].listener === listener)) {
+	        position = i;
+	        break;
+	      }
+	    }
+
+	    if (position < 0)
+	      return this;
+
+	    if (list.length === 1) {
+	      list.length = 0;
+	      delete this._events[type];
+	    } else {
+	      list.splice(position, 1);
+	    }
+
+	    if (this._events.removeListener)
+	      this.emit('removeListener', type, listener);
+	  }
+
+	  return this;
+	};
+
+	EventEmitter.prototype.removeAllListeners = function(type) {
+	  var key, listeners;
+
+	  if (!this._events)
+	    return this;
+
+	  // not listening for removeListener, no need to emit
+	  if (!this._events.removeListener) {
+	    if (arguments.length === 0)
+	      this._events = {};
+	    else if (this._events[type])
+	      delete this._events[type];
+	    return this;
+	  }
+
+	  // emit removeListener for all listeners on all events
+	  if (arguments.length === 0) {
+	    for (key in this._events) {
+	      if (key === 'removeListener') continue;
+	      this.removeAllListeners(key);
+	    }
+	    this.removeAllListeners('removeListener');
+	    this._events = {};
+	    return this;
+	  }
+
+	  listeners = this._events[type];
+
+	  if (isFunction(listeners)) {
+	    this.removeListener(type, listeners);
+	  } else if (listeners) {
+	    // LIFO order
+	    while (listeners.length)
+	      this.removeListener(type, listeners[listeners.length - 1]);
+	  }
+	  delete this._events[type];
+
+	  return this;
+	};
+
+	EventEmitter.prototype.listeners = function(type) {
+	  var ret;
+	  if (!this._events || !this._events[type])
+	    ret = [];
+	  else if (isFunction(this._events[type]))
+	    ret = [this._events[type]];
+	  else
+	    ret = this._events[type].slice();
+	  return ret;
+	};
+
+	EventEmitter.prototype.listenerCount = function(type) {
+	  if (this._events) {
+	    var evlistener = this._events[type];
+
+	    if (isFunction(evlistener))
+	      return 1;
+	    else if (evlistener)
+	      return evlistener.length;
+	  }
+	  return 0;
+	};
+
+	EventEmitter.listenerCount = function(emitter, type) {
+	  return emitter.listenerCount(type);
+	};
+
+	function isFunction(arg) {
+	  return typeof arg === 'function';
+	}
+
+	function isNumber(arg) {
+	  return typeof arg === 'number';
+	}
+
+	function isObject(arg) {
+	  return typeof arg === 'object' && arg !== null;
+	}
+
+	function isUndefined(arg) {
+	  return arg === void 0;
+	}
+
+
+/***/ },
+/* 44 */
 /***/ function(module, exports) {
 
 	module.exports = function(){
 		var args = Array.prototype.slice.apply(arguments)
 		var event = args.shift();
 		var actionName = args.shift();
-		var oldState = this.state.get();
+		var oldState = this.state.getState();
 		this.pageActions[actionName](oldState, event, args); // and args
-		this.render(this.state.get())
+		this.render(this.state.getState())
 	};
 
 /***/ },
-/* 44 */
+/* 45 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var _ = __webpack_require__(45);
-	var r = __webpack_require__(47)
-	var globalActions = __webpack_require__(53)(r);
+	var _ = __webpack_require__(46);
+	var r = __webpack_require__(48)
+	var globalActions = __webpack_require__(49)(r);
 
 	var pageActions = {
 		runTest: function(){
@@ -3091,7 +3696,7 @@
 	module.exports = _.assign({}, pageActions, globalActions);
 
 /***/ },
-/* 45 */
+/* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(module, global) {/**
@@ -19337,10 +19942,10 @@
 	  }
 	}.call(this));
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(46)(module), (function() { return this; }())))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(47)(module), (function() { return this; }())))
 
 /***/ },
-/* 46 */
+/* 47 */
 /***/ function(module, exports) {
 
 	module.exports = function(module) {
@@ -19356,7 +19961,7 @@
 
 
 /***/ },
-/* 47 */
+/* 48 */
 /***/ function(module, exports) {
 
 	// var findLastIndex = require('lodash.findlastindex');
@@ -19409,7 +20014,78 @@
 
 
 /***/ },
-/* 48 */
+/* 49 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var findLastIndex = __webpack_require__(50);
+
+	function getInputName(type, inputs){
+	  var index = findLastIndex(inputs, ['type', type])
+	  if(index > -1){
+	    var last = inputs[index];
+	    var l = last.name.split("_");
+	    var count = Number(l[1]);
+	    count++
+	    count = count + "";
+	    return [l[0], count].join("_");
+	  }else{
+	    return [type, 1].join("_")  
+	  }
+	}
+
+	module.exports = function(r){
+	  return {
+	    addSectionInput: function(state) {
+	      var inputs = state.get('menuMaker.menuInputs');
+	      console.log(inputs)
+	      var index = findLastIndex(inputs, ['type', type])
+	      var name = getInputName('section', inputs)
+	      var sectionElement = {
+	          name: name,
+	          type: "section",
+	          text: ""
+	      }
+
+	      if(state.editing === false){
+	        this.setToEdit(state);
+	      }
+	      inputs.push(sectionElement);
+	      state.set('menuMaker.menuInputs', inputs);
+
+	    },
+	    addItemInput: function(state) {
+	      var inputs = state.get('menuMaker.menuInputs');
+	      var index = findLastIndex(inputs, ['type', type])
+	      var name = getInputName('section', inputs)
+	      var sectionElement = {
+	          name: name,
+	          type: "section",
+	          text: ""
+	      }
+
+	      if(state.editing === false){
+	        this.setToEdit(state);
+	      }
+	      inputs.push(sectionElement);
+	      state.set('menuMaker.menuInputs', inputs);
+	    },
+	    setInputText: function(state, event) {
+	      var text = event.target.value;
+	      r.setText(text, event.target.name, state)
+	      return state
+	    },
+	    setToEdit: function(state) {
+	      return r.toggleState('menuMaker.editing', true, false, state);
+	    },
+	    removeInput: function(state, event, name) { 
+	      return r.deleteFromList(name, state);
+	    }
+	  }
+
+	};
+
+/***/ },
+/* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -19420,8 +20096,8 @@
 	 * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
 	 * Copyright Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
 	 */
-	var baseFindIndex = __webpack_require__(49),
-	    baseIteratee = __webpack_require__(50);
+	var baseFindIndex = __webpack_require__(51),
+	    baseIteratee = __webpack_require__(52);
 
 	/**
 	 * This method is like `_.findIndex` except that it iterates over elements
@@ -19468,7 +20144,7 @@
 
 
 /***/ },
-/* 49 */
+/* 51 */
 /***/ function(module, exports) {
 
 	/**
@@ -19506,7 +20182,7 @@
 
 
 /***/ },
-/* 50 */
+/* 52 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(module, global) {/**
@@ -19517,7 +20193,7 @@
 	 * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
 	 * Copyright Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
 	 */
-	var stringToPath = __webpack_require__(51);
+	var stringToPath = __webpack_require__(53);
 
 	/** Used as the size to enable large array optimizations. */
 	var LARGE_ARRAY_SIZE = 200;
@@ -21670,10 +22346,10 @@
 
 	module.exports = baseIteratee;
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(46)(module), (function() { return this; }())))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(47)(module), (function() { return this; }())))
 
 /***/ },
-/* 51 */
+/* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(module, global) {/**
@@ -21684,7 +22360,7 @@
 	 * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
 	 * Copyright Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
 	 */
-	var baseToString = __webpack_require__(52);
+	var baseToString = __webpack_require__(54);
 
 	/** Used as the `TypeError` message for "Functions" methods. */
 	var FUNC_ERROR_TEXT = 'Expected a function';
@@ -22419,10 +23095,10 @@
 
 	module.exports = stringToPath;
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(46)(module), (function() { return this; }())))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(47)(module), (function() { return this; }())))
 
 /***/ },
-/* 52 */
+/* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(module, global) {/**
@@ -22579,362 +23255,29 @@
 
 	module.exports = baseToString;
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(46)(module), (function() { return this; }())))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(47)(module), (function() { return this; }())))
 
 /***/ },
-/* 53 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var findLastIndex = __webpack_require__(48);
-
-	function getInputName(type, inputs){
-	  var index = findLastIndex(inputs, ['type', type])
-	  if(index > -1){
-	    var last = inputs[index];
-	    var l = last.name.split("_");
-	    var count = Number(l[1]);
-	    count++
-	    count = count + "";
-	    return [l[0], count].join("_");
-	  }else{
-	    return [type, 1].join("_")  
-	  }
-	}
-
-	module.exports = function(r){
-	  return {
-	    addSectionInput: function(state) {
-	      var inputs = state.get('menuMaker.menuInputs');
-	      console.log(inputs)
-	      var index = findLastIndex(inputs, ['type', type])
-	      var name = getInputName('section', inputs)
-	      var sectionElement = {
-	          name: name,
-	          type: "section",
-	          text: ""
-	      }
-
-	      if(state.editing === false){
-	        this.setToEdit(state);
-	      }
-	      inputs.push(sectionElement);
-	      state.set('menuMaker.menuInputs', inputs);
-
-	    },
-	    addItemInput: function(state) {
-	      var inputs = state.get('menuMaker.menuInputs');
-	      var index = findLastIndex(inputs, ['type', type])
-	      var name = getInputName('section', inputs)
-	      var sectionElement = {
-	          name: name,
-	          type: "section",
-	          text: ""
-	      }
-
-	      if(state.editing === false){
-	        this.setToEdit(state);
-	      }
-	      inputs.push(sectionElement);
-	      state.set('menuMaker.menuInputs', inputs);
-	    },
-	    setInputText: function(state, event) {
-	      var text = event.target.value;
-	      r.setText(text, event.target.name, state)
-	      return state
-	    },
-	    setToEdit: function(state) {
-	      return r.toggleState('menuMaker.editing', true, false, state);
-	    },
-	    removeInput: function(state, event, name) { 
-	      return r.deleteFromList(name, state);
-	    }
-	  }
-
-	};
-
-/***/ },
-/* 54 */,
 /* 55 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
-	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function (root, factory){
-	  'use strict';
-
-	  /*istanbul ignore next:cant test*/
-	  if (typeof module === 'object' && typeof module.exports === 'object') {
-	    module.exports = factory();
-	  } else if (true) {
-	    // AMD. Register as an anonymous module.
-	    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-	  } else {
-	    // Browser globals
-	    root.objectPath = factory();
+	module.exports = [
+	  {
+	  	name: "section_1",
+	  	type: "section",
+	  	text: "Appetizers"
+	  },
+	  {
+	  	name: "item_1",
+	  	type: "item",
+	  	text: "Crostini"
+	  },
+	  {
+	  	name: "item_2",
+	  	type: "item",
+	  	text: "Cucumber Sandwiches"
 	  }
-	})(this, function(){
-	  'use strict';
-
-	  var
-	    toStr = Object.prototype.toString,
-	    _hasOwnProperty = Object.prototype.hasOwnProperty;
-
-	  function isEmpty(value){
-	    if (!value) {
-	      return true;
-	    }
-	    if (isArray(value) && value.length === 0) {
-	        return true;
-	    } else if (!isString(value)) {
-	        for (var i in value) {
-	            if (_hasOwnProperty.call(value, i)) {
-	                return false;
-	            }
-	        }
-	        return true;
-	    }
-	    return false;
-	  }
-
-	  function toString(type){
-	    return toStr.call(type);
-	  }
-
-	  function isNumber(value){
-	    return typeof value === 'number' || toString(value) === "[object Number]";
-	  }
-
-	  function isString(obj){
-	    return typeof obj === 'string' || toString(obj) === "[object String]";
-	  }
-
-	  function isObject(obj){
-	    return typeof obj === 'object' && toString(obj) === "[object Object]";
-	  }
-
-	  function isArray(obj){
-	    return typeof obj === 'object' && typeof obj.length === 'number' && toString(obj) === '[object Array]';
-	  }
-
-	  function isBoolean(obj){
-	    return typeof obj === 'boolean' || toString(obj) === '[object Boolean]';
-	  }
-
-	  function getKey(key){
-	    var intKey = parseInt(key);
-	    if (intKey.toString() === key) {
-	      return intKey;
-	    }
-	    return key;
-	  }
-
-	  function set(obj, path, value, doNotReplace){
-	    if (isNumber(path)) {
-	      path = [path];
-	    }
-	    if (isEmpty(path)) {
-	      return obj;
-	    }
-	    if (isString(path)) {
-	      return set(obj, path.split('.').map(getKey), value, doNotReplace);
-	    }
-	    var currentPath = path[0];
-
-	    if (path.length === 1) {
-	      var oldVal = obj[currentPath];
-	      if (oldVal === void 0 || !doNotReplace) {
-	        obj[currentPath] = value;
-	      }
-	      return oldVal;
-	    }
-
-	    if (obj[currentPath] === void 0) {
-	      //check if we assume an array
-	      if(isNumber(path[1])) {
-	        obj[currentPath] = [];
-	      } else {
-	        obj[currentPath] = {};
-	      }
-	    }
-
-	    return set(obj[currentPath], path.slice(1), value, doNotReplace);
-	  }
-
-	  function del(obj, path) {
-	    if (isNumber(path)) {
-	      path = [path];
-	    }
-
-	    if (isEmpty(obj)) {
-	      return void 0;
-	    }
-
-	    if (isEmpty(path)) {
-	      return obj;
-	    }
-	    if(isString(path)) {
-	      return del(obj, path.split('.'));
-	    }
-
-	    var currentPath = getKey(path[0]);
-	    var oldVal = obj[currentPath];
-
-	    if(path.length === 1) {
-	      if (oldVal !== void 0) {
-	        if (isArray(obj)) {
-	          obj.splice(currentPath, 1);
-	        } else {
-	          delete obj[currentPath];
-	        }
-	      }
-	    } else {
-	      if (obj[currentPath] !== void 0) {
-	        return del(obj[currentPath], path.slice(1));
-	      }
-	    }
-
-	    return obj;
-	  }
-
-	  var objectPath = function(obj) {
-	    return Object.keys(objectPath).reduce(function(proxy, prop) {
-	      if (typeof objectPath[prop] === 'function') {
-	        proxy[prop] = objectPath[prop].bind(objectPath, obj);
-	      }
-
-	      return proxy;
-	    }, {});
-	  };
-
-	  objectPath.has = function (obj, path) {
-	    if (isEmpty(obj)) {
-	      return false;
-	    }
-
-	    if (isNumber(path)) {
-	      path = [path];
-	    } else if (isString(path)) {
-	      path = path.split('.');
-	    }
-
-	    if (isEmpty(path) || path.length === 0) {
-	      return false;
-	    }
-
-	    for (var i = 0; i < path.length; i++) {
-	      var j = path[i];
-	      if ((isObject(obj) || isArray(obj)) && _hasOwnProperty.call(obj, j)) {
-	        obj = obj[j];
-	      } else {
-	        return false;
-	      }
-	    }
-
-	    return true;
-	  };
-
-	  objectPath.ensureExists = function (obj, path, value){
-	    return set(obj, path, value, true);
-	  };
-
-	  objectPath.set = function (obj, path, value, doNotReplace){
-	    return set(obj, path, value, doNotReplace);
-	  };
-
-	  objectPath.insert = function (obj, path, value, at){
-	    var arr = objectPath.get(obj, path);
-	    at = ~~at;
-	    if (!isArray(arr)) {
-	      arr = [];
-	      objectPath.set(obj, path, arr);
-	    }
-	    arr.splice(at, 0, value);
-	  };
-
-	  objectPath.empty = function(obj, path) {
-	    if (isEmpty(path)) {
-	      return obj;
-	    }
-	    if (isEmpty(obj)) {
-	      return void 0;
-	    }
-
-	    var value, i;
-	    if (!(value = objectPath.get(obj, path))) {
-	      return obj;
-	    }
-
-	    if (isString(value)) {
-	      return objectPath.set(obj, path, '');
-	    } else if (isBoolean(value)) {
-	      return objectPath.set(obj, path, false);
-	    } else if (isNumber(value)) {
-	      return objectPath.set(obj, path, 0);
-	    } else if (isArray(value)) {
-	      value.length = 0;
-	    } else if (isObject(value)) {
-	      for (i in value) {
-	        if (_hasOwnProperty.call(value, i)) {
-	          delete value[i];
-	        }
-	      }
-	    } else {
-	      return objectPath.set(obj, path, null);
-	    }
-	  };
-
-	  objectPath.push = function (obj, path /*, values */){
-	    var arr = objectPath.get(obj, path);
-	    if (!isArray(arr)) {
-	      arr = [];
-	      objectPath.set(obj, path, arr);
-	    }
-
-	    arr.push.apply(arr, Array.prototype.slice.call(arguments, 2));
-	  };
-
-	  objectPath.coalesce = function (obj, paths, defaultValue) {
-	    var value;
-
-	    for (var i = 0, len = paths.length; i < len; i++) {
-	      if ((value = objectPath.get(obj, paths[i])) !== void 0) {
-	        return value;
-	      }
-	    }
-
-	    return defaultValue;
-	  };
-
-	  objectPath.get = function (obj, path, defaultValue){
-	    if (isNumber(path)) {
-	      path = [path];
-	    }
-	    if (isEmpty(path)) {
-	      return obj;
-	    }
-	    if (isEmpty(obj)) {
-	      return defaultValue;
-	    }
-	    if (isString(path)) {
-	      return objectPath.get(obj, path.split('.'), defaultValue);
-	    }
-
-	    var currentPath = getKey(path[0]);
-
-	    if (path.length === 1) {
-	      if (obj[currentPath] === void 0) {
-	        return defaultValue;
-	      }
-	      return obj[currentPath];
-	    }
-
-	    return objectPath.get(obj[currentPath], path.slice(1), defaultValue);
-	  };
-
-	  objectPath.del = function(obj, path) {
-	    return del(obj, path);
-	  };
-
-	  return objectPath;
-	});
+	];
 
 
 /***/ }
