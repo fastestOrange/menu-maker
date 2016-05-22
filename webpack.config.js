@@ -1,10 +1,15 @@
 var path = require('path');
-var handlebars
+
+console.log(__dirname)
 
 module.exports = {
-  entry: "./app.js",
+  entry: {
+    "menu-maker": "./restaurant-menu-maker/menu-maker/menu-maker.js",
+    "home-page": "./restaurant-menu-maker/home-page/index.js"
+  },
   output: {
-    filename: "bundle.js"
+    path: path.join(__dirname, "restaurant-menu-maker", "scripts"),
+    filename: '[name].bundle.js'
   },
   module: {
     loaders: [{ 

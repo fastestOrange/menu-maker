@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "baobab": "^2.3.3",
     "dominus": "^5.0.6",
     "firebase": "^2.4.2",
     "handlebars": "^4.0.5",
@@ -20,6 +21,12 @@
     "lodash.findlastindex": "^4.4.0",
     "lodash.foreach": "^4.3.0",
     "materialize-css": "^0.97.6",
-    "morphdom": "^1.3.0"
+    "mobx": "^2.1.7",
+    "morphdom": "^1.3.0",
+    "object-path": "^0.9.2",
+    "statesman": "^0.1.4"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0"
   }
 }
