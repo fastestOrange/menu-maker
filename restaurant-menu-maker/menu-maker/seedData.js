@@ -1,17 +1,23 @@
 module.exports = [
-  {
-  	name: "section_1",
+  { 
+  	id: 0,
+  	name: "section_0",
   	type: "section",
-  	text: "Appetizers"
+  	text: "Appetizers",
+  	index_of_type: 0
   },
   {
+  	id: 1,
+  	name: "item_0",
+  	type: "item",
+  	text: "Crostini",
+  	index_of_type: 0
+  },
+  {
+  	id: 2,
   	name: "item_1",
   	type: "item",
-  	text: "Crostini"
-  },
-  {
-  	name: "item_2",
-  	type: "item",
-  	text: "Cucumber Sandwiches"
+  	text: "Cucumber Sandwiches",
+  	index_of_type: 1
   }
 ];

@@ -6,26 +6,25 @@
 		      	 <div class="row">
 			        <div class="">
 			        <a onclick="setEventAction(event, 'setToEdit')" class="btn-large green">{{#if editing}}Done{{else}}Edit{{/if}}</a>
-			        <a onclick="setEventAction(event, 'test')" class="btn-large green">test</a>
-				  	<a onclick="setEventAction(event, 'addSectionInput')" class="btn-large red">+ Section</a>
-	    	  	    <a onclick="setEventAction(event, 'addItemInput')" class="btn-large red">+ Item</a>
+				  	<a onclick="setEventAction(event, 'addInput', 'section')" class="btn-large red">+ Section</a>
+	    	  	    <a onclick="setEventAction(event, 'addInput', 'item')" class="btn-large red">+ Item</a>
 			        </div>
 		      	 </div>
 		      	 <div class="row">
 	               {{#each menuInputs}}
-		                <div class="{{type}}class valign-wrapper row col s12">
+		                <div class="{{type}}_class valign-wrapper row col s12" data-index_of_type="{{index_of_type}}">
 		                    <div class="valign col s1">
-		                    	<span class="red-text" onclick="setEventAction('removeInput', '{{{name}}}')">X</span>
+		                    	<span class="red-text delete_input" onclick="setEventAction(event, 'removeInput', '{{{name}}}')">X</span>
 		                    </div>
 		                    <div class="grey lighten-3 type-labels align-right col s3">
 				                <h5>{{type}}<h5>
 		                    </div>
 		                    <div class="col s8">
 		                        {{#if ../editing}}
-					                	  <input onchange="setEventAction(event, 'setInputText')" name="{{name}}" style="margin-top: 15px" type="text" value="{{text}}"/>
-				                	  {{else}}
-						                	<p>{{text}}</p>
-				                	  {{/if}}
+			                	  <input onchange="setEventAction(event, 'setInputText')" name="{{name}}" data-id="{{id}}" style="margin-top: 15px" type="text" value="{{text}}"/>
+		                	    {{else}}
+				                  <p>{{text}}</p>
+		                	    {{/if}}
 		                    </div>
 		               </div>
 			       {{/each}}

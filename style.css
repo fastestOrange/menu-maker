@@ -16,3 +16,7 @@
 .align-right{
 	text-align: right;
 }
+
+.delete_input{
+	cursor: pointer;
+}

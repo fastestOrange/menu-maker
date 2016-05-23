@@ -4,6 +4,7 @@ var morph = require('morphdom')
 var appState = require('../../app-state');
 var Activator = require('../scripts/activator');
 var activator = Activator();
+var actions = require('./menu-maker-actions');
 
 //load seed data into state
 require('./seedData').map(function(i){
@@ -18,7 +19,7 @@ var MenuMaker = function(container, state){
   this.container = container;
   this.state = state;
   this.render(this.state.getState());
-   window.setEventAction = activator(this, require('./menu-maker-actions'))
+  window.setEventAction = activator(this, actions);
 }
 
 MenuMaker.prototype.render = function(state){

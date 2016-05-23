@@ -1,10 +1,10 @@
 var findLastIndex = require('lodash.findlastindex');
 
 function toggleState(propertyPath, a, b, state){
-  if(state.get(propertyPath) === a){
-    state.set(propertyPath, b);
+  if(state.getState(propertyPath) === a){
+    state.setState('set', propertyPath, b);
   }else{
-    state.set(propertyPath, a);
+    state.setState('set', propertyPath, a);
   }
 }
 
@@ -24,15 +24,15 @@ function getInputName(type, inputs){
 }
 
 function setText(text, name, state){
-	var inputs = state.menuInputs;
-	var index = findLastIndex(inputs, ['name', name])
-	inputs[index].text = text;
-	return state
+	// var inputs = state.menuInputs;
+	// var index = findLastIndex(inputs, ['name', name])
+	// inputs[index].text = text;
+	// return state
 }
 
-function deleteFromList(name, state){
+function deleteFromList(name, list, state){
   	name = name[0]
-	var inputs = state.menuInputs;
+	var inputs = state.getState(list);
 	var index = findLastIndex(inputs, ['name', name])
 	inputs.splice(index, 1);
 	return state;

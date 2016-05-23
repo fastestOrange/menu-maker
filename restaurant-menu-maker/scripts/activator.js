@@ -4,7 +4,7 @@ module.exports = function(){
     	var args = Array.prototype.slice.apply(arguments)
     	var event = args.shift();
     	var actionName = args.shift();
-    	var oldState = context.state.getState();
+    	var oldState = context.state;
     	pageActions[actionName](oldState, event, args); // and args
     	context.render(context.state.getState())
     }  
